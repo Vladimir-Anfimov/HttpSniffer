@@ -1,19 +1,28 @@
 import socket
+from application import Application
 
 from ethernet_frame import EthernetFrame
+from http_message_store import HttpMessageStore
 from ipv4_datagram import Ipv4Datagram
 from tcp_segment import TcpSegment
-from colorama import Fore, Style
+from http_message import HttpMessage
 
-class HttpSniffer:
+from threading import Thread
+
+class HttpSniffer(Thread):
     PACKET_SIZE = 65535
     IP_PROTOCOL = 8
     HTTP_PORT = 80
     TCP_PROTOCOL = 6
 
+    def __init__(self, http_message_store: HttpMessageStore):
+        Thread.__init__(self)
+        self.http_message_store = http_message_store
+
     def run(self):
         s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-        
+
+        self.messages = []
 
         while True:
             raw_data, _ = s.recvfrom(HttpSniffer.PACKET_SIZE)
@@ -30,7 +39,7 @@ class HttpSniffer:
             tcp_segment = TcpSegment(ipv4_datagram.data)
 
 
-            if HttpSniffer.HTTP_PORT not in [tcp_segment.src_port, tcp_segment.dest_port]:
+            if HttpSniffer.HTTP_PORT not in [tcp_segment.src_port, tcp_segment.dest_port] or tcp_segment.data == b'':
                 continue
 
            
@@ -39,12 +48,17 @@ class HttpSniffer:
 
 
     def packet_manager(self, ipv4_datagram: Ipv4Datagram, tcp_segment: TcpSegment):
-        print(str(ipv4_datagram), '\n', str(tcp_segment), '\n')
-
         try:
-            http = tcp_segment.data.decode('utf-8', errors='replace')
-            print(f'\tHTTP Data: {Fore.GREEN}{http}{Style.RESET_ALL}')
+            http_message = HttpMessage(
+                tcp_segment.data,
+                ipv4_datagram.src,
+                ipv4_datagram.dest,
+                tcp_segment.src_port,
+                tcp_segment.dest_port)
+            
+            print(http_message)
 
+            self.http_message_store.add(http_message)
         except UnicodeDecodeError:
             print('\tHTTP Data: Unable to decode')
 
