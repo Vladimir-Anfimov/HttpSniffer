@@ -2,11 +2,18 @@ from http_message import HttpMessage
 
 
 class HttpMessageFormatter:
+    """
+    Used to format the HTTP message as an array of strings.
+    The format is used by the Application class to display the message.
+    """
     def __init__(self, message: HttpMessage):
         self.message = message
         self.format = []
         self.build()
 
+    """
+    Builds the format array.
+    """
     def build(self):
         self.format.append(f"HTTP Message:")
         self.format.append(f"Src: {self.message.ip_src}:{self.message.port_src}")
