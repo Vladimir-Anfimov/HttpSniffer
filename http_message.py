@@ -1,6 +1,3 @@
-from tcp_segment import TcpSegment
-
-
 class HttpMessage:
     def __init__(self, data, ip_src, ip_dest, port_src, port_dest):
         self.ip_src = ip_src
@@ -13,7 +10,6 @@ class HttpMessage:
         self.path = None
         self.version = None
         self.headers = {}
-      
 
         if b'\r\n\r\n' in data:
             headers, body = data.split(b'\r\n\r\n', 1)
@@ -46,15 +42,3 @@ class HttpMessage:
         for header_line in headers_lines:
             header, value = header_line.split(b': ')
             self.headers[header.decode('utf-8')] = value.decode('utf-8')
-
-
-
-    def __str__(self):
-        return f"""HTTP Message:
-        Source: {self.ip_src}:{self.port_src}
-        Destination: {self.ip_dest}:{self.port_dest}
-        Method: {self.method}, Path: {self.path}, Version: {self.version}
-        Headers: {self.headers}
-        Body: {self.body.decode('utf-8')}
-        """
-    

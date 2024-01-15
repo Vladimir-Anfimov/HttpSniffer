@@ -2,19 +2,21 @@ from typing import Deque
 from http_message import HttpMessage
 from collections import deque
 
+from http_message_formtter import HttpMessageFormatter
+
 class HttpMessageStore:
     MAX_DEQUE_SIZE = 100
 
     def __init__(self):
-        self.messages: Deque[HttpMessage] = deque()
+        self.messages: Deque[HttpMessageFormatter] = deque()
         self.was_updated = False
 
     def add(self, message: HttpMessage):
-        self.was_updated = True
         if len(self.messages) == HttpMessageStore.MAX_DEQUE_SIZE:
             self.messages.pop()
 
-        self.messages.appendleft(message)
+        self.messages.appendleft(HttpMessageFormatter(message))
+        self.was_updated = True
 
 
     def __iter__(self):

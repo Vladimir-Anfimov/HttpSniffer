@@ -1,7 +1,7 @@
 import socket
-from application import Application
 
 from ethernet_frame import EthernetFrame
+from http_message_formtter import HttpMessageFormatter
 from http_message_store import HttpMessageStore
 from ipv4_datagram import Ipv4Datagram
 from tcp_segment import TcpSegment
@@ -38,16 +38,14 @@ class HttpSniffer(Thread):
 
             tcp_segment = TcpSegment(ipv4_datagram.data)
 
-
             if HttpSniffer.HTTP_PORT not in [tcp_segment.src_port, tcp_segment.dest_port] or tcp_segment.data == b'':
                 continue
 
-           
-            self.packet_manager(ipv4_datagram, tcp_segment)
+            self.message_process(ipv4_datagram, tcp_segment)
 
 
 
-    def packet_manager(self, ipv4_datagram: Ipv4Datagram, tcp_segment: TcpSegment):
+    def message_process(self, ipv4_datagram: Ipv4Datagram, tcp_segment: TcpSegment):
         try:
             http_message = HttpMessage(
                 tcp_segment.data,
@@ -56,8 +54,7 @@ class HttpSniffer(Thread):
                 tcp_segment.src_port,
                 tcp_segment.dest_port)
             
-            print(http_message)
-
+            print(HttpMessageFormatter(http_message))
             self.http_message_store.add(http_message)
         except UnicodeDecodeError:
             print('\tHTTP Data: Unable to decode')
